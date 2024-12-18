@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"goredis/client"
 	"log"
 	"log/slog"
 	"net"
+	"time"
 )
 
 const defaultListenAddr = ":4012"
@@ -97,6 +100,16 @@ func (s *Server) handleConn(conn net.Conn) {
 }
 
 func main() {
-	server := NewServer(Config{})
-	log.Fatal(server.Start())
+	go func() {
+		server := NewServer(Config{})
+		log.Fatal(server.Start())
+	}()
+	time.Sleep(time.Second)
+
+	client := client.New("localhost:4012")
+	if err := client.Set(context.Background(), "foo", "bar"); err != nil {
+		log.Fatal(err)
+	}
+
+	select {} // we are blocking here so the program doesn't exit!
 }
